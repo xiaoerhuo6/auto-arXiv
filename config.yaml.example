@@ -1,0 +1,52 @@
+# ====================================
+# auto-arXiv 配置示例
+# 复制此文件为 config.yaml 后填写
+# ====================================
+
+# ----- 1. 研究的兴趣方向描述（必填） -----
+research_profile:
+  description: |
+    请在这里填写你的研究方向，例如：
+    我研究自然语言处理，特别是大语言模型的推理能力、
+    思维链、工具使用方面。也关注知识蒸馏和模型压缩。
+  keywords: []
+
+# ----- 2. arXiv 分类（按优先级排序） -----
+# 排在前面的分类优先抓取，保证不遗漏
+arxiv_categories:
+  - astro-ph.CO
+  - astro-ph.IM
+  - cs.LG
+
+# ----- 3. LLM API 配置（必填） -----
+llm:
+  provider: "deepseek"
+  api_key: "sk-your-api-key-here"
+  model: "deepseek-chat"
+  base_url: "https://api.deepseek.com"
+  max_tokens: 4096
+  temperature: 0.1
+
+# ----- 4. 推送配置 -----
+notifications:
+  email:
+    enabled: false
+    smtp_server: "smtp.qq.com"
+    smtp_port: 465
+    use_ssl: true
+    sender: "your_email@qq.com"
+    password: "your-smtp-authorization-code"
+    receiver: "receiver@example.com"
+
+  wechat:
+    enabled: false
+    provider: "serverchan"
+    send_key: "your-serverchan-sendkey"
+
+# ----- 5. 运行参数 -----
+settings:
+  max_papers_per_day: 200
+  db_path: "data/arxiv.db"
+  report_dir: "reports"
+  log_irrelevant: false
+  reading_list: "reports/reading_list.md"

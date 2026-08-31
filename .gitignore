@@ -1,0 +1,30 @@
+# auto-arXiv .gitignore
+
+# API Keys and secrets (config.yaml contains your API key & email password)
+config.yaml
+
+# Runtime data (SQLite database)
+data/
+
+# Generated reports
+reports/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
