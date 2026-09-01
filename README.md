@@ -116,8 +116,10 @@ python -m auto_arxiv.main
 
 ## 输出
 
-- **每日报告**：eports/report_YYYY-MM-DD.md（Markdown 格式，按分类组织）
-- **待阅读清单**：eports/reading_list.md（持续累积所有分类 3 的论文）
+- **每日报告**：
+eports/report_YYYY-MM-DD.md（Markdown 格式，按分类组织）
+- **待阅读清单**：
+eports/reading_list.md（持续累积所有分类 3 的论文）
 - **邮箱推送**：HTML 格式的论文摘要日报
 - **微信推送**：Markdown 格式的论文摘要
 
@@ -134,6 +136,46 @@ python -m auto_arxiv.main
 - requests
 - pyyaml
 - openai
+
+
+## 云部署：GitHub Actions 定时运行（推荐）
+
+无需本地电脑开机，每天自动抓取论文并推送邮件。
+
+### 1. 配置 GitHub Secrets
+
+在你的 GitHub 仓库 → **Settings → Secrets and variables → Actions**，添加以下 Secrets：
+
+| Secret 名称 | 说明 |
+|------------|------|
+| `ARXIV_LLM_API_KEY` | DeepSeek API Key |
+| `ARXIV_LLM_MODEL` | 模型名，如 `DeepSeek-V4-Flash-0731` |
+| `ARXIV_LLM_BASE_URL` | API 地址，如 `https://llmapi.paratera.com` |
+| `ARXIV_RESEARCH_DESCRIPTION` | 研究方向描述（全部内容） |
+| `ARXIV_CATEGORIES` | 分类列表，逗号分隔，如 `astro-ph.CO,astro-ph.IM,cs.LG` |
+| `ARXIV_EMAIL_ENABLED` | `true` |
+| `ARXIV_EMAIL_SMTP_SERVER` | SMTP 服务器，如 `mails.tsinghua.edu.cn` |
+| `ARXIV_EMAIL_SMTP_PORT` | `465` |
+| `ARXIV_EMAIL_USE_SSL` | `true` |
+| `ARXIV_EMAIL_SENDER` | 发件人邮箱 |
+| `ARXIV_EMAIL_PASSWORD` | 邮箱密码/客户端专用密码 |
+| `ARXIV_EMAIL_RECEIVER` | 收件人邮箱 |
+
+### 2. 推送代码到 GitHub
+
+```bash
+git add .
+git commit -m "Add GitHub Actions workflow"
+git push
+```
+
+### 3. 验证
+
+推送后，GitHub 仓库的 **Actions** 标签页会自动触发一次运行。之后每天北京时间 10:00 自动执行。
+
+你也可以在 Actions 页面手动点击 **Run workflow** 立即测试。
+
+> **注意**：GitHub 免费套餐每月 2000 分钟运行时长，本项目每天跑一次约 5 分钟，一个月仅需 150 分钟，完全够用。
 
 ## License
 

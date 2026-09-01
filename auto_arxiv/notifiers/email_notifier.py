@@ -46,6 +46,7 @@ def build_paper_summary_html(papers: List[Dict]) -> str:
                 </a>
                 <p style="font-size:12px;color:#666;margin:4px 0;">{p['authors']}</p>
                 <p style="font-size:13px;color:#333;margin:4px 0;">{p['summary_zh']}</p>
+                {("<p style=\"font-size:12px;color:#888;margin:4px 0;\">- " + p['relevance_reason'] + "</p>") if p.get('relevance_reason') else ""}
             </td>
         </tr>"""
 
