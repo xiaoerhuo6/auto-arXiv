@@ -38,6 +38,9 @@ def build_paper_summary_html(papers: List[Dict]) -> str:
     """Build HTML email body from a list of papers."""
     rows = ""
     for p in papers:
+        reason_html = ""
+        if p.get('relevance_reason'):
+            reason_html = "<p style=\"font-size:12px;color:#888;margin:4px 0;\">- " + p['relevance_reason'] + "</p>"
         rows += f"""
         <tr>
             <td style="padding:10px;border-bottom:1px solid #eee;">
@@ -46,7 +49,7 @@ def build_paper_summary_html(papers: List[Dict]) -> str:
                 </a>
                 <p style="font-size:12px;color:#666;margin:4px 0;">{p['authors']}</p>
                 <p style="font-size:13px;color:#333;margin:4px 0;">{p['summary_zh']}</p>
-                {("<p style=\"font-size:12px;color:#888;margin:4px 0;\">- " + p['relevance_reason'] + "</p>") if p.get('relevance_reason') else ""}
+                {reason_html}
             </td>
         </tr>"""
 
