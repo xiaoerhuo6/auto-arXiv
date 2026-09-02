@@ -33,6 +33,24 @@ class Storage:
                     to_read INTEGER DEFAULT 0
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS feedback (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    arxiv_id TEXT NOT NULL,
+                    original_category INTEGER NOT NULL,
+                    user_category INTEGER NOT NULL,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (arxiv_id) REFERENCES papers(arxiv_id)
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS prompt_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    prompt TEXT NOT NULL,
+                    source TEXT DEFAULT 'initial',
+                    created_at TEXT DEFAULT (datetime('now'))
+                )
+            """)
 
     def save_paper(self, paper: Dict[str, Any], classification: Dict[str, Any]):
         """Insert or update a paper record."""
@@ -89,3 +107,44 @@ class Storage:
                 (category,)
             )
             return [dict(r) for r in cur.fetchall()]
+
+
+    def save_feedback(self, arxiv_id: str, original_category: int, user_category: int):
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO feedback (arxiv_id, original_category, user_category) VALUES (?, ?, ?)",
+                (arxiv_id, original_category, user_category)
+            )
+
+    def get_feedback_count(self) -> int:
+        with self._connect() as conn:
+            cur = conn.execute("SELECT COUNT(*) FROM feedback")
+            return cur.fetchone()[0]
+
+    def get_misclassified_patterns(self) -> list:
+        """Get feedback where user disagreed with LLM classification."""
+        with self._connect() as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.execute("""
+                SELECT f.*, p.title, p.abstract, p.summary_zh
+                FROM feedback f
+                JOIN papers p ON f.arxiv_id = p.arxiv_id
+                WHERE f.original_category != f.user_category
+                ORDER BY f.created_at DESC
+            """)
+            return [dict(r) for r in cur.fetchall()]
+
+    def save_prompt(self, prompt: str, source: str = 'llm_refined'):
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT INTO prompt_history (prompt, source) VALUES (?, ?)",
+                (prompt, source)
+            )
+
+    def get_latest_prompt(self) -> str:
+        with self._connect() as conn:
+            cur = conn.execute(
+                "SELECT prompt FROM prompt_history ORDER BY id DESC LIMIT 1"
+            )
+            row = cur.fetchone()
+            return row[0] if row else ""
