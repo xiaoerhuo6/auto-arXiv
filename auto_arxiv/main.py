@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from auto_arxiv.config import Config
 from auto_arxiv.arxiv_fetcher import fetch_latest_papers
-from auto_arxiv.classifier import classify_paper
+from auto_arxiv.classifier import classify_papers_batch
 from auto_arxiv.storage import Storage
 from auto_arxiv.notifiers.email_notifier import send_email, build_paper_summary_html
 from auto_arxiv.notifiers.wechat_notifier import send_wechat, build_wechat_message
@@ -52,17 +52,16 @@ def run_pipeline(config_path: str = "config.yaml"):
     # ---- Step 2: Classify ----
     print(f"[2/4] 正在对论文进行分类和摘要...")
     results = []  # (paper, classification)
-    for i, paper in enumerate(papers):
-        # Skip already processed papers
-        if storage.paper_exists(paper["arxiv_id"]):
-            continue
+    new_papers = [p for p in papers if not storage.paper_exists(p["arxiv_id"])]
+    print(f"      其中 {len(new_papers)} 篇为新论文")
 
-        classification = classify_paper(config, paper["title"], paper["abstract"])
-        storage.save_paper(paper, classification)
-        results.append((paper, classification))
-
-        cat_label = CATEGORY_LABELS.get(classification.get("category", 1), "未知")
-        print(f"      [{i+1}/{len(papers)}] {paper['arxiv_id']} -> {cat_label}")
+    if new_papers:
+        classifications = classify_papers_batch(config, new_papers)
+        for paper, classification in zip(new_papers, classifications):
+            storage.save_paper(paper, classification)
+            results.append((paper, classification))
+            cat_label = CATEGORY_LABELS.get(classification.get("category", 1), "未知")
+            print(f"      {paper['arxiv_id']} -> {cat_label}")
 
     # ---- Step 3: Notify ----
     print(f"[3/4] 正在推送通知...")

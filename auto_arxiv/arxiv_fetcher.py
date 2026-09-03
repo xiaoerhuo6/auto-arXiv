@@ -40,13 +40,31 @@ def fetch_latest_papers(categories: List[str], max_results: int = 200,
         query = f"cat:{cat}+AND+submittedDate:[{date_str}+TO+{now_str}]"
         url = f"{ARXIV_API_URL}?search_query={query}&start=0&max_results={fetch_count}&sortBy=submittedDate&sortOrder=descending"
 
-        try:
-            resp = requests.get(url, timeout=30)
-            resp.raise_for_status()
-            cat_papers = _parse_response(resp.text)
-        except Exception as e:
-            print(f"[Warning] Failed to fetch category '{cat}': {e}")
-            continue
+        retries = 3
+        cat_papers = []
+        for attempt in range(retries):
+            try:
+                resp = requests.get(url, timeout=60)
+                if resp.status_code == 429:
+                    wait = 10 * (attempt + 1)
+                    print(f"[Rate limited] Waiting {wait}s...")
+                    time.sleep(wait)
+                    continue
+                resp.raise_for_status()
+                cat_papers = _parse_response(resp.text)
+                break
+            except requests.exceptions.Timeout:
+                wait = 10 * (attempt + 1)
+                print(f"[Timeout] Retrying in {wait}s...")
+                time.sleep(wait)
+            except Exception as e:
+                if attempt < retries - 1:
+                    wait = 5 * (attempt + 1)
+                    print(f"[Warning] {e}. Retrying in {wait}s...")
+                    time.sleep(wait)
+                else:
+                    print(f"[Warning] Failed to fetch category '{cat}' after {retries} retries: {e}")
+                    cat_papers = []
 
         new_papers = []
         for p in cat_papers:
